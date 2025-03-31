@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: nestjs-app-dev
+    user: "root"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/src/app  # Mount local directory
+      - /usr/src/app/node_modules  # Prevent overwriting node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/chat-app
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo
+      - redis
+    command: npm run start:dev  # Ensure it runs in watch mode
+
+  mongo:
+    container_name: mongo
+    image: mongo:6.0
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    restart: always
+
+volumes:
+  mongo-data:

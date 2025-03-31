@@ -1,0 +1,32 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { IChatService } from './chat.service.interface';
+import { IMessageRepository } from '../repositories/message.repository.interface'
+import { Message } from '../entities/message.entity';
+import { IMessageRepositoryToken } from '../repositories/message.repository.interface';
+
+
+@Injectable()
+export class ChatService implements IChatService {
+  constructor(
+    @Inject(IMessageRepositoryToken) private readonly messageRepository: IMessageRepository) 
+  {}
+
+  async sendMessage(content: string, sender: string): Promise<Message> {
+    const message: Message = {
+      id: Math.random().toString(36).substring(7), // Generate a random ID
+      content,
+      sender,
+      timestamp: new Date(),
+      batchId: Math.random().toString(36).substring(8),
+    };
+    return this.messageRepository.save(message);
+  }
+
+  async getMessages(): Promise<Message[]> {
+    return this.messageRepository.findAll();
+  }
+
+  async getMessagesBySender(sender: string): Promise<Message[]> {
+    return this.messageRepository.findBySender(sender);
+  }
+}
