@@ -1,43 +1,105 @@
 import {
-    WebSocketGateway,
-    WebSocketServer,
-    SubscribeMessage,
-    MessageBody,
-  } from '@nestjs/websockets';
-  import { Server } from 'socket.io';
-  import { RedisService } from '../redis/redis.service';
-  
-  @WebSocketGateway({ cors: true })
-  export class AppGateway {
-    @WebSocketServer()
-    server: Server;
-  
-    constructor(private readonly redisService: RedisService) {
-      this.subscribeToRedis();
-    }
-  
-    private subscribeToRedis(): void {
-      // Subscribe to multiple channels if needed
-      this.redisService.subscribe('chat', (message: string) => {
-        this.handleIncomingMessage('chat', message);
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { Logger } from '@nestjs/common';
+
+@WebSocketGateway({
+  cors: {
+    origin: '*', // Adjust for production
+  },
+  // Optional: Specify port or namespace
+  // namespace: '/chat',
+  // port: 3001
+})
+export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  server: Server;
+  private readonly logger = new Logger(SocketSerive.name);
+
+  constructor() {
+    this.server?.on('connection', (socket) => {
+      this.logger.log(`socket client connected: ${socket.id}`);
+      socket.emit('connection-success', { 
+        message: 'Successfully connected to WebSocket server',
+        clientId: socket.id 
       });
+    });
+  }
+
+  afterInit(server: Server) {
+    this.logger.log('✅ WebSocket server initialized and listening');
+    
+    server.on('connection', (socket: Socket) => {
+      this.logger.log(`🔌 Client connected: ${socket.id}`);
       
-      // Add more subscriptions here for other modules
+      socket.on('disconnect', () => {
+        this.logger.log(`❌ Client disconnected: ${socket.id}`);
+      });
+    });
+  }
+
+  handleConnection(client: Socket, ...args: any[]) {
+    this.logger.log(`Client connected: ${client.id}`);
+    client.emit('connection', { status: 'connected', id: client.id });
+  }
+
+  handleDisconnect(client: Socket) {
+    this.logger.log(`Client disconnected: ${client.id}`);
+  }
+
+  // 2. Basic message handlers
+  @SubscribeMessage('message')
+  handleMessage(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: Socket
+  ): string {
+    this.logger.log(`Received from ${client.id}: ${JSON.stringify(data)}`);
+    
+    // Broadcast to all clients except sender
+    client.broadcast.emit('message', {
+      from: client.id,
+      message: data,
+      timestamp: new Date().toISOString()
+    });
+
+    // Return acknowledgement to sender
+    return 'Message received';
+  }
+
+  sendMessage(message: string, room?: string) {
+    if (!this.server) {
+      throw new Error('Socket server not initialized');
     }
-  
-    private handleIncomingMessage(channel: string, message: string): void {
+
+    try {
       const parsed = JSON.parse(message);
-      this.server.emit(channel, parsed);
-      console.log(`[${channel}] message >>>`, parsed);
-    }
-  
-    @SubscribeMessage('publish')
-    async handlePublishMessage(
-      @MessageBody() data: { channel: string; content: any },
-    ): Promise<void> {
-      await this.redisService.publish(
-        data.channel, 
-        JSON.stringify(data.content)
-      );
+      
+      if (room) {
+        // Emit to specific room
+        this.server.to(room).emit('message', parsed);
+      } else {
+        // Broadcast to all connected clients
+        this.server.emit('message', parsed);
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
     }
   }
+
+  // 3. Utility methods
+  broadcastToRoom(room: string, event: string, data: any) {
+    this.server.to(room).emit(event, data);
+  }
+
+  sendToClient(clientId: string, event: string, data: any) {
+    this.server.to(clientId).emit(event, data);
+  }
+}

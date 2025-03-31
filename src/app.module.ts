@@ -3,9 +3,11 @@ import { Connection } from 'mongoose';
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+// middlewares
+import { LoggingMiddleware } from './midleware/system/logging.middleware';
+
 // modules
 import { ChatModule } from './modules/chat/chat.module';
-import { LoggingMiddleware } from './midleware/system/logging.middleware';
 
 @Module({
   imports: [
@@ -24,14 +26,13 @@ import { LoggingMiddleware } from './midleware/system/logging.middleware';
 })
 export class AppModule implements OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggingMiddleware).forRoutes('*'); // Apply to all routes
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 
   private readonly logger = new Logger(AppModule.name);
   
   constructor(
-    // Inject the mongoose connection that NestJS is managing
-    @Inject(getConnectionToken()) private connection: Connection
+    @Inject(getConnectionToken()) private connection: Connection,
   ) {}
 
   async onModuleInit() {

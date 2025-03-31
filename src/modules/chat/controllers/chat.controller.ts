@@ -13,7 +13,6 @@ import { ChatService } from '../services/chat.service';
 @Controller('chat')
 export class ChatController {
   constructor(
-    private readonly chatGateway: ChatGateway,
     private readonly chatService: ChatService,
   ) {}
 
@@ -26,6 +25,5 @@ export class ChatController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<void> {
     await this.chatService.sendMessage(createMessageDto.content, createMessageDto.sender);
-    await this.chatGateway.publishMessageToRedis(createMessageDto);
   }
 }
