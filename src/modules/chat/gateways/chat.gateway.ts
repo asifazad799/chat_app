@@ -32,7 +32,7 @@ export class ChatGateway {
   }
 
   async publishMessage(
-     data: CreateMessageDto
+    data: CreateMessageDto
   ): Promise<void> {
     try {
       const payload = JSON.stringify({

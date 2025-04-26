@@ -6,8 +6,9 @@ import {
   ValidationPipe,
   Get,
 } from '@nestjs/common';
-import { CreateMessageDto } from '../dtos/create-message.dto';
+import { CreateMessageDto, GetMessagesDto } from '../dtos/create-message.dto';
 import { ChatService } from '../services/chat.service';
+import { Message } from '../entities/message.entity';
 
 @Controller('chat')
 export class ChatController {
@@ -16,13 +17,14 @@ export class ChatController {
   ) {}
 
   @Get('message')
-  async getMessages() {
-    return this.chatService.getMessages();
+  async getMessages(@Body() body: GetMessagesDto) {
+    return this.chatService.getMessagesBySender(body);
   }
 
   @Post('message')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<void> {
-    await this.chatService.sendMessage(createMessageDto.content, createMessageDto.sender);
+  async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<Message> {
+    const res = await this.chatService.sendMessage(createMessageDto.content, createMessageDto.sender);
+    return res;
   }
 }

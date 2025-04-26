@@ -19,21 +19,21 @@ export class ChatService implements IChatService {
       content,
       sender,
       timestamp: new Date(),
-      batchId: Math.random().toString(36).substring(8),
+      batchId: Math.random().toString(36).substring(8)
     };
 
     // publish message to redis
     await this.chatGateway.publishMessage(message);
 
     // implement kafka before saving to db
-    return this.messageRepository.save(message);
+    return await this.messageRepository.save(message);
   }
 
   async getMessages(): Promise<Message[]> {
-    return this.messageRepository.findAll();
+    return await this.messageRepository.findAll();
   }
 
-  async getMessagesBySender(sender: string): Promise<Message[]> {
-    return this.messageRepository.findBySender(sender);
+  async getMessagesBySender({sender, limit, skip}:{sender: string,skip: number, limit: number }): Promise<Message[]> {
+    return await this.messageRepository.findBySender({sender, limit, skip});
   }
 }

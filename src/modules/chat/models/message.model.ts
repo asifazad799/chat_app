@@ -4,7 +4,7 @@ export const MessageSchema = new Schema({
   content: { type: String, required: true },
   sender: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
-  batchId: { type: Schema.ObjectId, required: true },
+  batchId: { type: String, required: true },
 });
 
 export class Message {
@@ -14,3 +14,5 @@ export class Message {
   timestamp: Date;
   batchId: string;
 }
+
+export type MessageDocument = Message & Document;
