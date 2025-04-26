@@ -7,7 +7,6 @@ import {
   Get,
 } from '@nestjs/common';
 import { CreateMessageDto } from '../dtos/create-message.dto';
-import { ChatGateway } from '../gateways/chat.gateway';
 import { ChatService } from '../services/chat.service';
 
 @Controller('chat')

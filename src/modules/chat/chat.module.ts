@@ -13,7 +13,6 @@ import { MessageSchema } from './models/message.model';
 
 import { ChatController } from './controllers/chat.controller';
 
-
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Message', schema: MessageSchema }]),
@@ -21,7 +20,7 @@ import { ChatController } from './controllers/chat.controller';
   controllers: [ChatController],
   providers: [
     ChatGateway, 
-    RedisService, 
+    RedisService,
     ChatService,
     SocketSerive,   
     {

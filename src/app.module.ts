@@ -1,7 +1,7 @@
 import { Module, OnModuleInit, Logger, Inject, MiddlewareConsumer } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Connection } from 'mongoose';
 import { MongooseModule, getConnectionToken } from '@nestjs/mongoose';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // middlewares
 import { LoggingMiddleware } from './midleware/system/logging.middleware';
@@ -24,6 +24,7 @@ import { ChatModule } from './modules/chat/chat.module';
     ChatModule
   ],
 })
+
 export class AppModule implements OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggingMiddleware).forRoutes('*');

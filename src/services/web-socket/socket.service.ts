@@ -11,13 +11,15 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
+import { EVENTS } from './constants';
+
 @WebSocketGateway({
   cors: {
-    origin: '*', // Adjust for production
+    origin: true, 
+    credentials: true
   },
-  // Optional: Specify port or namespace
-  // namespace: '/chat',
-  // port: 3001
+  transports: ['websocket'], // Force WebSocket-only mode
+  allowUpgrades: false       // Disable HTTP upgrade fallback
 })
 export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -56,41 +58,39 @@ export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   // 2. Basic message handlers
-  @SubscribeMessage('message')
+  @SubscribeMessage(EVENTS.message)
   handleMessage(
     @MessageBody() data: any,
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ): string {
-    this.logger.log(`Received from ${client.id}: ${JSON.stringify(data)}`);
-    
-    // Broadcast to all clients except sender
-    client.broadcast.emit('message', {
-      from: client.id,
-      message: data,
-      timestamp: new Date().toISOString()
-    });
+    this.logger.log(`Received from ${client.id}: ${JSON.stringify(data)}`); 
+
+    if (data?.room_id && data?.message == 'join_room') {
+      client.join(data?.room_id)
+      client.to(data?.room_id).emit(EVENTS.message, `${client.id} is joined to room`)
+    }
 
     // Return acknowledgement to sender
     return 'Message received';
   }
 
-  sendMessage(message: string, room?: string) {
+  publish({message, event, room}:{message: any, event: string, room?: string}) {
     if (!this.server) {
       throw new Error('Socket server not initialized');
     }
 
-    try {
-      const parsed = JSON.parse(message);
-      
+    try {      
       if (room) {
         // Emit to specific room
-        this.server.to(room).emit('message', parsed);
+        this.server.to(room).emit(event, message);
       } else {
         // Broadcast to all connected clients
-        this.server.emit('message', parsed);
+        this.server.emit(event, message);
       }
+
     } catch (error) {
       console.error('Error handling message:', error);
+      throw error
     }
   }
 

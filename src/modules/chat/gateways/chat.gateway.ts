@@ -4,6 +4,7 @@ import { RedisService } from '../../../services/redis/redis.service';
 import { SocketSerive } from 'src/services/web-socket/socket.service';
 
 import { CreateMessageDto } from '../dtos/create-message.dto';
+import { EVENTS } from 'src/services/web-socket/constants';
 
 @Injectable()
 export class ChatGateway {
@@ -22,7 +23,9 @@ export class ChatGateway {
 
   private handleRedisMessage(message: string) {
     try {
-      this.socketSerive.sendMessage(message, 'message');
+      const parsed = JSON.parse(message);
+
+      this.socketSerive.publish({message, event: EVENTS.chat, room: parsed?.roomId});
     } catch (err) {
       console.error('Error parsing Redis message', err);
     }
