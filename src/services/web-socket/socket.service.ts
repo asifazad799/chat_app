@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
-import { EVENTS } from './constants';
+import { REDIS_EVENTS } from './constants';
 
 @WebSocketGateway({
   cors: {
@@ -21,10 +21,10 @@ import { EVENTS } from './constants';
   transports: ['websocket'], // Force WebSocket-only mode
   allowUpgrades: false       // Disable HTTP upgrade fallback
 })
-export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class SocketService implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
-  private readonly logger = new Logger(SocketSerive.name);
+  private readonly logger = new Logger(SocketService.name);
 
   constructor() {
     this.server?.on('connection', (socket) => {
@@ -58,7 +58,7 @@ export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   // 2. Basic message handlers
-  @SubscribeMessage(EVENTS.message)
+  @SubscribeMessage(REDIS_EVENTS.message)
   handleMessage(
     @MessageBody() data: any,
     @ConnectedSocket() client: Socket,
@@ -67,7 +67,7 @@ export class SocketSerive implements OnGatewayInit, OnGatewayConnection, OnGatew
 
     if (data?.room_id && data?.message == 'join_room') {
       client.join(data?.room_id)
-      client.to(data?.room_id).emit(EVENTS.message, `${client.id} is joined to room`)
+      client.to(data?.room_id).emit(REDIS_EVENTS.message, `${client.id} is joined to room`)
     }
 
     // Return acknowledgement to sender

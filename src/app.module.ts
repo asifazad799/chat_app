@@ -1,6 +1,5 @@
 import { Module, MiddlewareConsumer } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 
 // middlewares
 import { LoggingMiddleware } from './midleware/system/logging.middleware';
@@ -14,13 +13,20 @@ import { DatabaseModule } from './data-base/database.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get('LOCAL_MONGODB_URI'),
-      }),
-      inject: [ConfigService],
-    }),
+    // ClientsModule.register([
+    //   {
+    //     name: 'KAFKA_SERVICE',
+    //     transport: Transport.KAFKA,
+    //     options: {
+    //       client: {
+    //         brokers: ['localhost:9092'],
+    //       },
+    //       consumer: {
+    //         groupId: 'nest-consumer-group',
+    //       },
+    //     },
+    //   },
+    // ]),
     DatabaseModule,
     ChatModule
   ],

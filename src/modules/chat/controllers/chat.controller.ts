@@ -17,6 +17,7 @@ export class ChatController {
   ) {}
 
   @Get('message')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async getMessages(@Body() body: GetMessagesDto) {
     return this.chatService.getMessagesBySender(body);
   }

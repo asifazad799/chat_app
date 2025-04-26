@@ -9,7 +9,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   
   constructor(private readonly configService: ConfigService) {
-    this.pubClient = createClient({ url: this.configService.get('LOCAL_REDIS_URI'), });
+    this.pubClient = createClient({ url: this.configService.get('REDIS_URI'), });
     this.subClient = this.pubClient.duplicate();
 
     // Add error listeners

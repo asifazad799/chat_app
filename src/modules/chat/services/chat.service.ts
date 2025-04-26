@@ -23,7 +23,7 @@ export class ChatService implements IChatService {
     };
 
     // publish message to redis
-    await this.chatGateway.publishMessage(message);
+    await this.chatGateway.publishMessageToRedis(message);
 
     // implement kafka before saving to db
     return await this.messageRepository.save(message);

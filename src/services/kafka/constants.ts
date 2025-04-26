@@ -1,0 +1,2 @@
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; 
