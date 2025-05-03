@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { RedisService } from '../../services/redis/redis.service';
 import { ChatService } from './services/chat.service';
 import { SocketService } from 'src/services/web-socket/socket.service';
+import { KafkaService } from 'src/services/kafka/kafka.service';
 
 import { ChatGateway } from './gateways/chat.gateway';
 import { MessageRepository } from './repositories/message.repository';
@@ -22,7 +23,8 @@ import { ChatController } from './controllers/chat.controller';
     ChatGateway, 
     RedisService,
     ChatService,
-    SocketService,   
+    SocketService,
+    KafkaService,   
     {
       provide: IMessageRepositoryToken,
       useClass: MessageRepository

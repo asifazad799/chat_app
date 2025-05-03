@@ -1,5 +1,7 @@
+import { Types } from 'mongoose';
+
 export class Message {
-  id: string;
+  id: Types.ObjectId;
   content: string;
   sender: string;
   timestamp: Date;

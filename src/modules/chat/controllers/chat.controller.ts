@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { CreateMessageDto, GetMessagesDto } from '../dtos/create-message.dto';
 import { ChatService } from '../services/chat.service';
-import { Message } from '../entities/message.entity';
 
 @Controller('chat')
 export class ChatController {
@@ -24,8 +23,11 @@ export class ChatController {
 
   @Post('message')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<Message> {
-    const res = await this.chatService.sendMessage(createMessageDto.content, createMessageDto.sender);
-    return res;
+  async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<{status: boolean}> {
+    try {
+      return await this.chatService.sendMessage(createMessageDto.content, createMessageDto.sender);
+    } catch (error) {
+      return {status : false}
+    }
   }
 }

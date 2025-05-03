@@ -15,7 +15,7 @@ export class MessageRepository implements IMessageRepository {
     private readonly messageModel: Model<MessageDocument>, 
   ) {}
 
-  async save(message: Message): Promise<Message> {
+  async saveToDB(message: Message): Promise<Message> {
     const createdMessage = new this.messageModel(message);
 
     const savedMessage = await createdMessage.save();

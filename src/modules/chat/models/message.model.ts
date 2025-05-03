@@ -1,6 +1,7 @@
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 
 export const MessageSchema = new Schema({
+  _id: { type: Schema.Types.ObjectId, default: () => new Types.ObjectId() },
   content: { type: String, required: true },
   sender: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
@@ -8,7 +9,7 @@ export const MessageSchema = new Schema({
 });
 
 export class Message {
-  id: string;
+  id: Types.ObjectId;
   content: string;
   sender: string;
   timestamp: Date;
