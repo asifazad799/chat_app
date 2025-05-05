@@ -1,57 +1,43 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { Types } from 'mongoose';
 
-import { Message } from '../entities/message.entity';
+import { Message } from '../../entities/message.entity';
 
 import { IChatService } from './chat.service.interface';
-import { IMessageRepository } from '../repositories/message.repository.interface';
-import { IMessageRepositoryToken } from '../repositories/message.repository.interface';
-import { ChatGateway } from '../gateways/chat.gateway';
-import { KafkaService } from 'src/services/kafka/kafka.service';
-import { Types } from 'mongoose';
+import { IMessageRepository } from '../../repositories/message.repository.interface';
+import { IMessageRepositoryToken } from '../../repositories/message.repository.interface';
+import { MessageDispatcherService } from '../dispatcher/messageDispatcher.service';
 
 @Injectable()
 export class ChatService implements IChatService {
-  private readonly TOPIC = 'chat-topic';
-
   constructor(
     @Inject(IMessageRepositoryToken)
     private readonly messageRepository: IMessageRepository,
-    private readonly chatGateway: ChatGateway,
-    private readonly kafkaService: KafkaService,
+    private readonly messageDispatcherService: MessageDispatcherService,
   ) {}
 
   async sendMessage(
     content: string,
     sender: string,
+    roomId: string
   ): Promise<{ status: boolean }> {
     try {
       const message: Message = {
         id: new Types.ObjectId(),
         content,
         sender,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         batchId: Math.random().toString(36).substring(8),
+        roomId,
       };
 
-      // publish message to redis will ensure users gets message on real-time
-      await this.pushMessageToRedis({ message });
-
-      // pushing message to kafka will ensure throughput
-      await this.pushMessageToKafka({ message });
+      await this.messageDispatcherService.dispatchMessage({ message });
 
       return { status: true };
     } catch (error) {
       // log error
       throw error;
     }
-  }
-
-  private async pushMessageToKafka({ message }: { message: Message }) {
-    return await this.kafkaService.pushMessage({ topic: this.TOPIC, message });
-  }
-
-  private async pushMessageToRedis({ message }: { message: Message }) {
-    return await this.chatGateway.publishMessageToRedis(message);
   }
 
   async getMessages(): Promise<Message[]> {

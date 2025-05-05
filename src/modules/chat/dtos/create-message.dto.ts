@@ -8,6 +8,10 @@ export class CreateMessageDto {
   @IsString()
   @IsNotEmpty()
   sender: string;
+
+  @IsString()
+  @IsNotEmpty()
+  roomId: string;
 }
 
 export class GetMessagesDto {

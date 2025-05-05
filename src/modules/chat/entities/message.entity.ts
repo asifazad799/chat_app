@@ -4,6 +4,7 @@ export class Message {
   id: Types.ObjectId;
   content: string;
   sender: string;
-  timestamp: Date;
+  timestamp: Date | string;
   batchId: string;
+  roomId: string;
 }

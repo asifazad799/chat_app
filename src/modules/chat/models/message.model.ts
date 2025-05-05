@@ -6,14 +6,16 @@ export const MessageSchema = new Schema({
   sender: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
   batchId: { type: String, required: true },
+  roomId: { type: String, required: true },
 });
 
 export class Message {
   id: Types.ObjectId;
   content: string;
   sender: string;
-  timestamp: Date;
+  timestamp: Date | string;
   batchId: string;
+  roomId: string;
 }
 
 export type MessageDocument = Message & Document;

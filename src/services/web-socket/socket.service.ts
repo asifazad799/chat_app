@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
-import { REDIS_EVENTS } from './constants';
+import { REDIS_EVENTS } from '../../constants';
 
 @WebSocketGateway({
   cors: {

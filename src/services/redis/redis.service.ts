@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, RedisClientType } from 'redis';
 
@@ -7,22 +12,21 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private pubClient: RedisClientType;
   private subClient: RedisClientType;
   private readonly logger = new Logger(RedisService.name);
-  
+
   constructor(private readonly configService: ConfigService) {
-    this.pubClient = createClient({ url: this.configService.get('REDIS_URI'), });
+    this.pubClient = createClient({ url: this.configService.get('REDIS_URI') });
     this.subClient = this.pubClient.duplicate();
 
     // Add error listeners
-    this.pubClient.on('error', (err) => 
-      this.logger.error('Pub Client Error', err));
-    this.subClient.on('error', (err) => 
-      this.logger.error('Sub Client Error', err));
-    this.subClient.on('connect', () => 
-      this.logger.log('Subscriber connected'));
-    this.subClient.on('ready', () => 
-      this.logger.log('Subscriber ready'));
-    this.subClient.on('end', () => 
-      this.logger.warn('Subscriber disconnected'));
+    this.pubClient.on('error', (err) =>
+      this.logger.error('Pub Client Error', err),
+    );
+    this.subClient.on('error', (err) =>
+      this.logger.error('Sub Client Error', err),
+    );
+    this.subClient.on('connect', () => this.logger.log('Subscriber connected'));
+    this.subClient.on('ready', () => this.logger.log('Subscriber ready'));
+    this.subClient.on('end', () => this.logger.warn('Subscriber disconnected'));
   }
 
   async onModuleInit() {
@@ -49,7 +53,37 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await this.pubClient.publish(channel, message);
   }
 
-  async subscribe(channel: string, callback: (message: string) => void): Promise<void> {
+  async subscribe(
+    channel: string,
+    callback: (message: string) => void,
+  ): Promise<void> {
     await this.subClient.subscribe(channel, callback);
+  }
+
+  async setCache({
+    key,
+    ttlSeconds,
+    value,
+  }: {
+    key: string;
+    value: any;
+    ttlSeconds: number;
+  }): Promise<void> {
+    try {
+      await this.pubClient.set(key, JSON.stringify(value), { EX: ttlSeconds });
+      this.logger.log(`Cache set for key "${key}" with TTL ${ttlSeconds}s`);
+    } catch (err) {
+      this.logger.error(`Failed to set cache for key "${key}"`, err);
+    }
+  }
+
+  async getCache<T = any>({ key }: { key: string }): Promise<T | null> {
+    try {
+      const data = await this.pubClient.get(key);
+      return data ? JSON.parse(data) : null;
+    } catch (err) {
+      this.logger.error(`Failed to get cache for key "${key}"`, err);
+      return null;
+    }
   }
 }
