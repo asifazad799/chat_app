@@ -40,6 +40,9 @@ services:
     ports:
       - '6379:6379'
     restart: always
+    volumes:
+      - ./docker-conf/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
   
   kafka:
     image: bitnami/kafka:latest
