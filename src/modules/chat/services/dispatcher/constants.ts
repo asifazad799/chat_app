@@ -1,0 +1,1 @@
+export const REDIS_CHAT_KEY_PREFIX = 'chat-chate';

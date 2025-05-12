@@ -86,4 +86,94 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
   }
+
+  async pushValuesInOrder({
+    key,
+    value,
+    ttlSeconds,
+  }: {
+    key: string;
+    value: any;
+    ttlSeconds: number;
+  }): Promise<void> {
+    const stringified = JSON.stringify(value);
+
+    await this.pubClient.lPush(key, stringified);
+
+    const ttl = await this.pubClient.ttl(key);
+    if (ttl === -1) {
+      await this.pubClient.expire(key, ttlSeconds);
+    }
+  }
+
+  async getValuesByPatterInOrder({
+    key,
+    start = 0,
+    end = -1,
+    parse = true,
+  }: {
+    key: string;
+    start?: number;
+    end?: number;
+    parse?: boolean;
+  }): Promise<any[]> {
+    const values = await this.pubClient.lRange(key, start, end);
+
+    if (!parse) return values;
+
+    return values.map((item) => {
+      try {
+        return JSON.parse(item);
+      } catch {
+        return item;
+      }
+    });
+  }
+
+  async scanKeys(pattern: string): Promise<string[]> {
+    const client = this.pubClient; // or this.pubClient
+    const foundKeys: string[] = [];
+    let cursor = 0;
+
+    do {
+      const result = await client.scan(cursor, {
+        MATCH: pattern,
+        COUNT: 100, // You can adjust this batch size
+      });
+
+      cursor = Number(result.cursor);
+      foundKeys.push(...result.keys);
+    } while (cursor !== 0);
+
+    return foundKeys;
+  }
+
+  async getValuesByPattern(
+    pattern: string,
+    onlyValues = false,
+  ): Promise<Record<string, any> | any[]> {
+    const keys = await this.scanKeys(pattern);
+
+    const values = await Promise.all(
+      keys.map((key) => this.pubClient.get(key)),
+    );
+
+    const parsedValues = values.map((val) => {
+      try {
+        return val ? JSON.parse(val) : val;
+      } catch {
+        return val;
+      }
+    });
+
+    return onlyValues
+      ? parsedValues
+      : keys.reduce(
+          (acc, key, i) => {
+            acc[key] = parsedValues[i];
+            return acc;
+          },
+          {} as Record<string, any>,
+        );
+  }
 }

@@ -11,8 +11,8 @@ export class MessageRepository implements IMessageRepository {
   private messages: Message[] = [];
 
   constructor(
-    @InjectModel('Message') 
-    private readonly messageModel: Model<MessageDocument>, 
+    @InjectModel('Message')
+    private readonly messageModel: Model<MessageDocument>,
   ) {}
 
   async saveToDB(message: Message): Promise<Message> {
@@ -22,9 +22,33 @@ export class MessageRepository implements IMessageRepository {
     return savedMessage.toJSON();
   }
 
-  async findBySender({sender, limit, skip}:{sender: string,skip: number, limit: number }): Promise<Message[]> {
+  async findBySender({
+    sender,
+    limit,
+    skip,
+  }: {
+    sender: string;
+    skip: number;
+    limit: number;
+  }): Promise<Message[]> {
     return this.messageModel
       .find({ sender })
+      .skip(skip)
+      .limit(limit)
+      .sort({ timestamp: -1 });
+  }
+
+  async findByRoomId({
+    roomId,
+    limit,
+    skip,
+  }: {
+    roomId: string;
+    skip: number;
+    limit: number;
+  }): Promise<Message[]> {
+    return this.messageModel
+      .find({ roomId })
       .skip(skip)
       .limit(limit)
       .sort({ timestamp: -1 });

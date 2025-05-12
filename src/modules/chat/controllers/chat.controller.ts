@@ -6,24 +6,29 @@ import {
   ValidationPipe,
   Get,
 } from '@nestjs/common';
-import { CreateMessageDto, GetMessagesDto } from '../dtos/create-message.dto';
+
+import {
+  CreateMessageDto,
+  GetMessagesByRoomIdDto,
+} from '../dtos/create-message.dto';
+
 import { ChatService } from '../services/chat/chat.service';
 
 @Controller('chat')
 export class ChatController {
-  constructor(
-    private readonly chatService: ChatService,
-  ) {}
+  constructor(private readonly chatService: ChatService) {}
 
   @Get('message')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async getMessages(@Body() body: GetMessagesDto) {
-    return this.chatService.getMessagesBySender(body);
+  async getMessages(@Body() body: GetMessagesByRoomIdDto) {
+    return this.chatService.getMessagesByRoomId(body);
   }
 
   @Post('message')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async sendMessage(@Body() createMessageDto: CreateMessageDto): Promise<{status: boolean}> {
+  async sendMessage(
+    @Body() createMessageDto: CreateMessageDto,
+  ): Promise<{ status: boolean }> {
     try {
       return await this.chatService.sendMessage(
         createMessageDto.content,
@@ -31,7 +36,7 @@ export class ChatController {
         createMessageDto.roomId,
       );
     } catch (error) {
-      return {status : false}
+      return { status: false };
     }
   }
 }

@@ -13,25 +13,10 @@ import { DatabaseModule } from './data-base/database.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    // ClientsModule.register([
-    //   {
-    //     name: 'KAFKA_SERVICE',
-    //     transport: Transport.KAFKA,
-    //     options: {
-    //       client: {
-    //         brokers: ['localhost:9092'],
-    //       },
-    //       consumer: {
-    //         groupId: 'nest-consumer-group',
-    //       },
-    //     },
-    //   },
-    // ]),
     DatabaseModule,
-    ChatModule
+    ChatModule,
   ],
 })
-
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggingMiddleware).forRoutes('*');

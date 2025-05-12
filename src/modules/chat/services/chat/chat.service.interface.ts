@@ -6,7 +6,9 @@ export interface IChatService {
     sender: string,
     roomId: string,
   ): Promise<{ status: boolean }>;
-  getMessages(): Promise<Message[]>;
+
+  getAllMessages(): Promise<Message[]>;
+
   getMessagesBySender({
     sender,
     limit,
@@ -16,4 +18,14 @@ export interface IChatService {
     skip: number;
     limit: number;
   }): Promise<Message[]>;
+
+  getMessagesByRoomId({
+    roomId,
+    limit,
+    skip,
+  }: {
+    roomId: string;
+    skip: number;
+    limit: number;
+  }): Promise<Message[] | null>;
 }

@@ -27,3 +27,17 @@ export class GetMessagesDto {
   @Min(1)
   limit: number;
 }
+
+export class GetMessagesByRoomIdDto {
+  @IsString()
+  @IsNotEmpty()
+  roomId: string;
+
+  @IsNumber()
+  @Min(0)
+  skip: number;
+
+  @IsNumber()
+  @Min(1)
+  limit: number;
+}
